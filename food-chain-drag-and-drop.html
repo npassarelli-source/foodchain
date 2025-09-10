@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Chain Funhouse!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0fdf4; /* Light green background */
+        }
+        .drag-item {
+            cursor: grab;
+            user-select: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .drag-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        .drag-item:active {
+            cursor: grabbing;
+        }
+        .drop-zone {
+            transition: background-color 0.3s ease;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12 flex items-center justify-center min-h-screen">
+
+    <main class="bg-white p-6 md:p-10 rounded-3xl shadow-2xl max-w-4xl w-full text-center">
+        <h1 class="text-3xl md:text-5xl font-extrabold text-green-700 mb-2 drop-shadow-md">Food Chain Funhouse!</h1>
+        <p class="text-lg md:text-xl text-gray-600 mb-8">
+            Help me sort the living things into the right groups! Drag and drop each item into the correct box.
+        </p>
+
+        <!-- Container for the draggable items -->
+        <div id="items-container" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+            <!-- Items to be dragged -->
+            <div id="item-tree" data-type="producer" class="drag-item bg-amber-100 p-4 rounded-xl shadow-md text-center">
+                <span class="block text-4xl mb-2">🌳</span>
+                <span class="font-bold text-lg text-amber-800">Tree</span>
+            </div>
+            <div id="item-grass" data-type="producer" class="drag-item bg-green-100 p-4 rounded-xl shadow-md text-center">
+                <span class="block text-4xl mb-2">🌱</span>
+                <span class="font-bold text-lg text-green-800">Grass</span>
+            </div>
+            <div id="item-flower" data-type="producer" class="drag-item bg-pink-100 p-4 rounded-xl shadow-md text-center">
+                <span class="block text-4xl mb-2">🌸</span>
+                <span class="font-bold text-lg text-pink-800">Flower</span>
+            </div>
+            <div id="item-deer" data-type="consumer" class="drag-item bg-lime-100 p-4 rounded-xl shadow-md text-center">
+                <span class="block text-4xl mb-2">🦌</span>
+                <span class="font-bold text-lg text-lime-800">Deer</span>
+            </div>
+            <div id="item-bunny" data-type="consumer" class="drag-item bg-lime-100 p-4 rounded-xl shadow-md text-center">
+                <span class="block text-4xl mb-2">🐇</span>
+                <span class="font-bold text-lg text-lime-800">Bunny</span>
+            </div>
+            <div id="item-fox" data-type="consumer" class="drag-item bg-red-100 p-4 rounded-xl shadow-md text-center">
+                <span class="block text-4xl mb-2">🦊</span>
+                <span class="font-bold text-lg text-red-800">Fox</span>
+            </div>
+            <div id="item-bear" data-type="consumer" class="drag-item bg-yellow-100 p-4 rounded-xl shadow-md text-center">
+                <span class="block text-4xl mb-2">🐻</span>
+                <span class="font-bold text-lg text-yellow-800">Bear</span>
+            </div>
+            <div id="item-mushroom" data-type="decomposer" class="drag-item bg-gray-100 p-4 rounded-xl shadow-md text-center">
+                <span class="block text-4xl mb-2">🍄</span>
+                <span class="font-bold text-lg text-gray-800">Mushroom</span>
+            </div>
+            <div id="item-worm" data-type="decomposer" class="drag-item bg-gray-100 p-4 rounded-xl shadow-md text-center">
+                <span class="block text-4xl mb-2">🪱</span>
+                <span class="font-bold text-lg text-gray-800">Worm</span>
+            </div>
+        </div>
+
+        <!-- Feedback message area -->
+        <div id="feedback-message" class="text-xl md:text-2xl font-bold mb-6 min-h-[3rem] transition-colors duration-300"></div>
+
+        <!-- Container for the drop zones -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Producer Drop Zone -->
+            <div id="drop-producer" data-accepts="producer" class="drop-zone bg-green-50 border-4 border-dashed border-green-300 rounded-2xl p-6 flex flex-col items-center justify-center flex-wrap gap-2 min-h-[100px] w-full">
+                <h3 class="text-2xl font-bold text-green-700 mb-2">Producers</h3>
+                <p class="text-sm text-gray-500 mb-4">(Make their own food)</p>
+            </div>
+
+            <!-- Consumer Drop Zone -->
+            <div id="drop-consumer" data-accepts="consumer" class="drop-zone bg-blue-50 border-4 border-dashed border-blue-300 rounded-2xl p-6 flex flex-col items-center justify-center flex-wrap gap-2 min-h-[100px] w-full">
+                <h3 class="text-2xl font-bold text-blue-700 mb-2">Consumers</h3>
+                <p class="text-sm text-gray-500 mb-4">(Eat other things)</p>
+            </div>
+
+            <!-- Decomposer Drop Zone -->
+            <div id="drop-decomposer" data-accepts="decomposer" class="drop-zone bg-gray-50 border-4 border-dashed border-gray-300 rounded-2xl p-6 flex flex-col items-center justify-center flex-wrap gap-2 min-h-[100px] w-full">
+                <h3 class="text-2xl font-bold text-gray-700 mb-2">Decomposers</h3>
+                <p class="text-sm text-gray-500 mb-4">(Nature's recyclers)</p>
+            </div>
+        </div>
+        
+        <!-- Reset Button -->
+        <button id="reset-button" class="mt-8 px-6 py-3 bg-red-500 text-white font-bold rounded-full shadow-lg hover:bg-red-600 transition-all">
+            Start Over
+        </button>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const items = document.querySelectorAll('.drag-item');
+            const dropZones = document.querySelectorAll('.drop-zone');
+            const itemsContainer = document.getElementById('items-container');
+            const feedbackMessage = document.getElementById('feedback-message');
+            const resetButton = document.getElementById('reset-button');
+            
+            // Variable to store the item being dragged
+            let draggedItem = null;
+
+            // Specific feedback message templates
+            const feedbackTemplates = {
+                'producer-consumer': (itemName) => `Oops, ${itemName.toLowerCase()} makes its own food from the sun! It doesn't need to eat other living things.`,
+                'producer-decomposer': (itemName) => `Oops, ${itemName.toLowerCase()} gets energy from the sun, not by breaking down dead matter!`,
+                'consumer-producer': (itemName) => `Oops, ${itemName.toLowerCase()} gets energy by eating, not by making its own food!`,
+                'consumer-decomposer': (itemName) => `Oops, ${itemName.toLowerCase()} eats other living things, it doesn't help break down dead matter.`,
+                'decomposer-producer': (itemName) => `Oops, ${itemName.toLowerCase()} doesn't make its own food! It's a natural recycler.`,
+                'decomposer-consumer': (itemName) => `Oops, ${itemName.toLowerCase()} is a natural recycler! It doesn't eat other living things.`,
+            };
+
+            // Make each item draggable
+            items.forEach(item => {
+                item.setAttribute('draggable', true);
+                item.addEventListener('dragstart', (e) => {
+                    // Clear previous feedback when a new drag begins
+                    feedbackMessage.textContent = '';
+                    draggedItem = e.target;
+                    e.dataTransfer.setData('text/plain', draggedItem.id);
+                    // Add a class for visual feedback during drag
+                    setTimeout(() => {
+                        draggedItem.classList.add('opacity-50');
+                    }, 0);
+                });
+
+                item.addEventListener('dragend', () => {
+                    draggedItem.classList.remove('opacity-50');
+                });
+            });
+
+            // Set up drop zones
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('border-purple-500'); // Highlight the zone
+                });
+
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('border-purple-500');
+                });
+
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('border-purple-500');
+
+                    const droppedItemId = e.dataTransfer.getData('text/plain');
+                    const droppedItem = document.getElementById(droppedItemId);
+
+                    if (!droppedItem) return;
+
+                    const droppedType = droppedItem.dataset.type;
+                    const zoneType = zone.dataset.accepts;
+
+                    if (droppedType === zoneType) {
+                        // Correct drop!
+                        zone.appendChild(droppedItem);
+                        droppedItem.style.transform = 'scale(1)';
+                        droppedItem.style.boxShadow = 'none';
+                        droppedItem.classList.remove('drag-item', 'cursor-grab');
+                        showFeedback("Great job! That's correct!", 'text-green-600');
+                    } else {
+                        // Incorrect drop, provide specific feedback
+                        const droppedItemName = droppedItem.querySelector('.font-bold').textContent;
+                        const feedbackKey = `${droppedType}-${zoneType}`;
+                        const message = feedbackTemplates[feedbackKey](droppedItemName) || "Oops! That one doesn't go here. Try again!";
+                        showFeedback(message, 'text-red-600');
+                    }
+                });
+            });
+
+            // Function to display feedback
+            const showFeedback = (message, colorClass) => {
+                feedbackMessage.textContent = message;
+                feedbackMessage.className = `text-xl md:text-2xl font-bold mb-6 min-h-[3rem] transition-colors duration-300 ${colorClass}`;
+            };
+
+            // Reset the game
+            resetButton.addEventListener('click', () => {
+                items.forEach(item => {
+                    itemsContainer.appendChild(item);
+                    item.classList.add('drag-item', 'cursor-grab');
+                    item.style.transform = 'scale(1)';
+                    item.style.boxShadow = '';
+                });
+                // Clear feedback on reset
+                feedbackMessage.textContent = '';
+            });
+        });
+    </script>
+</body>
+</html>
